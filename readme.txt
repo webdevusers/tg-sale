@@ -23,3 +23,5 @@ Items:
 POST: ${link}/item/create -> Принимает name age price category profit comments first_url second_url userID connect status
 POST: ${link}/item/get -> Принимает в body - status (Например: На модерации)
 POST: ${link}/item/update -> Принимает id канала заданого монгодб (_id) и newStatus (Новый статус (Например: Отклоненные))
+
+*Обновление уже всех добавленных товаров раз в сутки в 00:00 UTC+3
