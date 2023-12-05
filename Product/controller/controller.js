@@ -27,18 +27,18 @@ class ItemController {
 
       const [stats, avgpostreach, subscribers, er, get] = await Promise.all([
         axios.get(
-          `https://api.tgstat.ru/channels/stat/?token=<yourToken>&channelId=${name}`
+          `https://api.tgstat.ru/channels/stat/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${name}`
         ),
         axios.get(
-          `https://api.tgstat.ru/channels/avg-posts-reach/?token=<yourToken>&channelId=${name}`
+          `https://api.tgstat.ru/channels/avg-posts-reach/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${name}`
         ),
         axios.get(
-          `https://api.tgstat.ru/channels/subscribers/?token=<yourToken>&channelId=${name}`
+          `https://api.tgstat.ru/channels/subscribers/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${name}`
         ),
         axios.get(
-          `https://api.tgstat.ru/channels/er/?token=<yourToken>&channelId=${name}`
+          `https://api.tgstat.ru/channels/er/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${name}`
         ),
-        axios.get(`https://api.tgstat.ru/channels/get/?token=<yourToken>&channelId=${item.name}`)
+        axios.get(`https://api.tgstat.ru/channels/get/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${name}`)
       ]);
       const filteredData = {
         stat: stats.data.status === "ok" ? stats.data.response : "Exists",
@@ -48,7 +48,7 @@ class ItemController {
             ? subscribers.data.response
             : "Exists",
         er: er.data.status === "ok" ? er.data : "Exists",
-        get: get.data.status === "ok" ? er.data : "Exists"
+        get: get.data.status === "ok" ? get.data : "Exists"
       };
 
       const newItem = await new Item({
@@ -122,18 +122,18 @@ class ItemController {
         setTimeout(async () => {
           const [stats, avgpostreach, subscribers, er, get] = await Promise.all([
             axios.get(
-              `https://api.tgstat.ru/channels/stat/?token=<yourToken>&channelId=${item.name}`
+              `https://api.tgstat.ru/channels/stat/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${item.name}`
             ),
             axios.get(
-              `https://api.tgstat.ru/channels/avg-posts-reach/?token=<yourToken>&channelId=${item.name}`
+              `https://api.tgstat.ru/channels/avg-posts-reach/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${item.name}`
             ),
             axios.get(
-              `https://api.tgstat.ru/channels/subscribers/?token=<yourToken>&channelId=${item.name}`
+              `https://api.tgstat.ru/channels/subscribers/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${item.name}`
             ),
             axios.get(
-              `https://api.tgstat.ru/channels/er/?token=<yourToken>&channelId=${item.name}`
+              `https://api.tgstat.ru/channels/er/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${item.name}`
             ),
-            axios.get(`https://api.tgstat.ru/channels/get/?token=<yourToken>&channelId=${item.name}`)
+            axios.get(`https://api.tgstat.ru/channels/get/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${item.name}`)
           ]);
 
           item.tgStat = {
