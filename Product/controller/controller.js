@@ -27,16 +27,16 @@ class ItemController {
 
       const [stats, avgpostreach, subscribers, er] = await Promise.all([
         axios.get(
-          `https://api.tgstat.ru/channels/stat/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${name}`
+          `https://api.tgstat.ru/channels/stat/?token=<yourToken>&channelId=${name}`
         ),
         axios.get(
-          `https://api.tgstat.ru/channels/avg-posts-reach/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${name}`
+          `https://api.tgstat.ru/channels/avg-posts-reach/?token=<yourToken>&channelId=${name}`
         ),
         axios.get(
-          `https://api.tgstat.ru/channels/subscribers/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${name}`
+          `https://api.tgstat.ru/channels/subscribers/?token=<yourToken>&channelId=${name}`
         ),
         axios.get(
-          `https://api.tgstat.ru/channels/er/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${name}`
+          `https://api.tgstat.ru/channels/er/?token=<yourToken>&channelId=${name}`
         ),
       ]);
       const filteredData = {
@@ -120,16 +120,16 @@ class ItemController {
         setTimeout(async () => {
           const [stats, avgpostreach, subscribers, er] = await Promise.all([
             axios.get(
-              `https://api.tgstat.ru/channels/stat/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${item.name}`
+              `https://api.tgstat.ru/channels/stat/?token=<yourToken>&channelId=${item.name}`
             ),
             axios.get(
-              `https://api.tgstat.ru/channels/avg-posts-reach/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${item.name}`
+              `https://api.tgstat.ru/channels/avg-posts-reach/?token=<yourToken>&channelId=${item.name}`
             ),
             axios.get(
-              `https://api.tgstat.ru/channels/subscribers/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${item.name}`
+              `https://api.tgstat.ru/channels/subscribers/?token=<yourToken>&channelId=${item.name}`
             ),
             axios.get(
-              `https://api.tgstat.ru/channels/er/?token=1ff5fe24c503fad6fc8669120fa0a449&channelId=${item.name}`
+              `https://api.tgstat.ru/channels/er/?token=<yourToken>&channelId=${item.name}`
             ),
           ]);
 
