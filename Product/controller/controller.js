@@ -157,5 +157,22 @@ class ItemController {
       console.error("Error updating tgstat data:", e);
     }
   }
+    async getOneItem(req, res) {
+    try {
+      const { name } = req.query;
+
+      const itemToSend = await Item.findOne({ name: name });
+
+      if (!itemToSend) {
+        return res.status(500).json({ msg: "Channel is not defined" });
+      }
+
+      return res.status(200).json(itemToSend);
+    } catch (e) {
+      return res
+        .status(500)
+        .json({ msg: "Internal Server Error", error: `${e}` });
+    }
+  }
 }
 module.exports = new ItemController();
