@@ -53,7 +53,7 @@ class ItemController {
         name: name,
         age: age,
         price: price,
-        categorY: category,
+        category: category,
         profit: profit,
         comments: comments,
         first_url: first_url,
