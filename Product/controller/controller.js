@@ -49,8 +49,8 @@ class ItemController {
           subscribers.data.status === "ok"
             ? subscribers.data.response
             : "Exists",
-        er: er.data.status === "ok" ? er.data : "Exists",
-        get: get.data.status === "ok" ? get.data : "Exists"
+        er: er.data.status === "ok" ? er.data.response : "Exists",
+        get: get.data.status === "ok" ? get.data.response : "Exists"
       };
 
       const newItem = await new Item({
