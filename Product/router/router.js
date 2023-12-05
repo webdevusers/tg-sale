@@ -11,5 +11,7 @@ const router = express.Router();
 router.post('/create', controller.create)
 router.post('/get', controller.getItems)
 router.post('/update', controller.update)
+router.get('/getChannel', controller.getOneItem)
+
 
 module.exports = router;
