@@ -27,7 +27,7 @@ class ItemController {
         res.status(400).json({ msg: "Channel with that name exists" });
       }
 
-      const [stats, avgpostreach, subscribers, er, get] = await Promise.all([
+      const [stats, avgpostreach, subscribers, er, get, views] = await Promise.all([
         axios.get(
           `https://api.tgstat.ru/channels/stat/?token=${token}&channelId=${name}`
         ),
@@ -43,6 +43,9 @@ class ItemController {
         axios.get(
           `https://api.tgstat.ru/channels/get/?token=${token}&channelId=${name}`
         ),
+        axios.get(
+          `https://api.tgstat.ru/channels/views/?token=${token}&channelId=${name}`
+        ),
       ]);
       const filteredData = {
         stat: stats.data.status === "ok" ? stats.data.response : "Exists",
@@ -53,6 +56,7 @@ class ItemController {
             : "Exists",
         er: er.data.status === "ok" ? er.data.response : "Exists",
         get: get.data.status === "ok" ? get.data.response : "Exists",
+        views: views.data.status === "ok" ? views.data.response : "Exists"
       };
 
       const newItem = await new Item({
@@ -124,7 +128,7 @@ class ItemController {
         const delay = items.indexOf(item) * delayPerChannel;
 
         setTimeout(async () => {
-          const [stats, avgpostreach, subscribers, er, get] = await Promise.all(
+          const [stats, avgpostreach, subscribers, er, get, views] = await Promise.all(
             [
               axios.get(
                 `https://api.tgstat.ru/channels/stat/?token=${token}&channelId=${item.name}`
@@ -141,6 +145,9 @@ class ItemController {
               axios.get(
                 `https://api.tgstat.ru/channels/get/?token=${token}&channelId=${item.name}`
               ),
+              axios.get(
+                `https://api.tgstat.ru/channels/views/?token=${token}&channelId=${item.name}`
+              ),
             ]
           );
 
@@ -152,8 +159,9 @@ class ItemController {
               subscribers.data.status === "ok"
                 ? subscribers.data.response
                 : "Exists",
-            er: er.data.status === "ok" ? er.data : "Exists",
-            get: get.data.status === "ok" ? er.data : "Exists",
+            er: er.data.status === "ok" ? er.data.response : "Exists",
+            get: get.data.status === "ok" ? get.data.response : "Exists",
+            views: views.data.status === "ok"  ? views.data.response : "Exists",
           };
 
           await item.save();
@@ -181,16 +189,16 @@ class ItemController {
     }
   }
   async deleteItem(req, res) {
-    const {name} = req.body;
+    const { name } = req.body;
     try {
       const item = await Item.findOne({ name: name });
       if (!item) {
-        res.status(404).json({item, msg: "exists"})
+        res.status(404).json({ item, msg: "exists" });
       }
-      await item.deleteOne()
-      res.status(200).json({msg: "deleted"})
-    } catch(e) {
-      res.status(500).json({msg: "Internal Server Error", error: `${e}`})
+      await item.deleteOne();
+      res.status(200).json({ msg: "deleted" });
+    } catch (e) {
+      res.status(500).json({ msg: "Internal Server Error", error: `${e}` });
     }
   }
 }
