@@ -2,7 +2,7 @@ const axios = require("axios");
 const Item = require("../models/product");
 const moment = require("moment-timezone");
 
-const token = "1ff5fe24c503fad6fc8669120fa0a449"
+const token = "1ff5fe24c503fad6fc8669120fa0a449";
 
 class ItemController {
   async create(req, res) {
@@ -40,7 +40,9 @@ class ItemController {
         axios.get(
           `https://api.tgstat.ru/channels/er/?token=${token}&channelId=${name}`
         ),
-        axios.get(`https://api.tgstat.ru/channels/get/?token=${token}&channelId=${name}`)
+        axios.get(
+          `https://api.tgstat.ru/channels/get/?token=${token}&channelId=${name}`
+        ),
       ]);
       const filteredData = {
         stat: stats.data.status === "ok" ? stats.data.response : "Exists",
@@ -50,7 +52,7 @@ class ItemController {
             ? subscribers.data.response
             : "Exists",
         er: er.data.status === "ok" ? er.data.response : "Exists",
-        get: get.data.status === "ok" ? get.data.response : "Exists"
+        get: get.data.status === "ok" ? get.data.response : "Exists",
       };
 
       const newItem = await new Item({
@@ -122,21 +124,25 @@ class ItemController {
         const delay = items.indexOf(item) * delayPerChannel;
 
         setTimeout(async () => {
-          const [stats, avgpostreach, subscribers, er, get] = await Promise.all([
-            axios.get(
-              `https://api.tgstat.ru/channels/stat/?token=${token}&channelId=${item.name}`
-            ),
-            axios.get(
-              `https://api.tgstat.ru/channels/avg-posts-reach/?token=${token}&channelId=${item.name}`
-            ),
-            axios.get(
-              `https://api.tgstat.ru/channels/subscribers/?token=${token}&channelId=${item.name}`
-            ),
-            axios.get(
-              `https://api.tgstat.ru/channels/er/?token=${token}&channelId=${item.name}`
-            ),
-            axios.get(`https://api.tgstat.ru/channels/get/?token=${token}&channelId=${item.name}`)
-          ]);
+          const [stats, avgpostreach, subscribers, er, get] = await Promise.all(
+            [
+              axios.get(
+                `https://api.tgstat.ru/channels/stat/?token=${token}&channelId=${item.name}`
+              ),
+              axios.get(
+                `https://api.tgstat.ru/channels/avg-posts-reach/?token=${token}&channelId=${item.name}`
+              ),
+              axios.get(
+                `https://api.tgstat.ru/channels/subscribers/?token=${token}&channelId=${item.name}`
+              ),
+              axios.get(
+                `https://api.tgstat.ru/channels/er/?token=${token}&channelId=${item.name}`
+              ),
+              axios.get(
+                `https://api.tgstat.ru/channels/get/?token=${token}&channelId=${item.name}`
+              ),
+            ]
+          );
 
           item.tgStat = {
             stat: stats.data.status === "ok" ? stats.data.response : "Exists",
@@ -157,7 +163,7 @@ class ItemController {
       console.error("Error updating tgstat data:", e);
     }
   }
-    async getOneItem(req, res) {
+  async getOneItem(req, res) {
     try {
       const { name } = req.query;
 
@@ -172,6 +178,19 @@ class ItemController {
       return res
         .status(500)
         .json({ msg: "Internal Server Error", error: `${e}` });
+    }
+  }
+  async deleteItem(req, res) {
+    const {name} = req.body;
+    try {
+      const item = await Item.findOne({ name: name });
+      if (!item) {
+        res.status(404).json({item, msg: "exists"})
+      }
+      await item.deleteOne()
+      res.status(200).json({msg: "deleted"})
+    } catch(e) {
+      res.status(500).json({msg: "Internal Server Error", error: `${e}`})
     }
   }
 }
