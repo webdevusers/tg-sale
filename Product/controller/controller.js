@@ -1,5 +1,5 @@
 const axios = require("axios");
-const Item = require("../models/product");
+const Item = require("../models/product.js");
 const moment = require("moment-timezone");
 
 const token = "1ff5fe24c503fad6fc8669120fa0a449";
