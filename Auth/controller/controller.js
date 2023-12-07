@@ -1,205 +1,147 @@
-const axios = require("axios");
-const Item = require("../models/product");
-const moment = require("moment-timezone");
+const User = require("../models/User");
+const Product = require("../../Product/models/product");
 
-const token = "1ff5fe24c503fad6fc8669120fa0a449";
-
-class ItemController {
-  async create(req, res) {
+class AuthController {
+  async autentificate(req, res) {
     try {
-      const {
-        name,
-        age,
-        price,
-        category,
-        profit,
-        comments,
-        first_url,
-        second_url,
-        userID,
-        connect,
-        status,
-      } = req.body;
+      const { telegramId } = req.body;
 
-      const candidate = await Item.find({ name });
+      const candidate = await User.find({ telegramId });
 
-      if (!candidate) {
-        res.status(400).json({ msg: "Channel with that name exists" });
+      if (candidate.length > 0) {
+        return res.status(200).json({ candidate: candidate[0] });
       }
 
-      const [stats, avgpostreach, subscribers, er, get, views] = await Promise.all([
-        axios.get(
-          `https://api.tgstat.ru/channels/stat/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/avg-posts-reach/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/subscribers/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/er/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/get/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/views/?token=${token}&channelId=${name}`
-        ),
-      ]);
-      const filteredData = {
-        stat: stats.data.status === "ok" ? stats.data.response : "Exists",
-        avg: avgpostreach.data.status === "ok" ? avgpostreach.data : "Exists",
-        subs:
-          subscribers.data.status === "ok"
-            ? subscribers.data.response
-            : "Exists",
-        er: er.data.status === "ok" ? er.data.response : "Exists",
-        get: get.data.status === "ok" ? get.data.response : "Exists",
-        views: views.data.status === "ok" ? views.data.response : "Exists"
-      };
-
-      const newItem = await new Item({
-        name: name,
-        age: age,
-        price: price,
-        category: category,
-        profit: profit,
-        comments: comments,
-        first_url: first_url,
-        second_url: second_url,
-        userID: userID,
-        connect: connect,
-        status: status,
-        tgStat: {
-          filteredData,
-        },
+      const item = await new User({
+        telegramId: telegramId,
+        status: "User",
+        itemModeration: [],
+        itemRejected: [],
+        itemSucceffuly: [],
+        itemFavorites: [],
       }).save();
-      res.status(200).json(newItem);
-    } catch (e) {
-      res.status(500).json({ msg: "Internal server error", error: `${e}` });
-    }
-  }
-  async getItems(req, res) {
-    try {
-      const { status } = req.body;
 
-      const channels = await Item.find({ status: status });
-
-      res.status(200).json(channels);
+      return res.status(200).json({
+        created: true,
+        item,
+      });
     } catch (e) {
-      res.status(500).json({ msg: "Internal server error", error: `${e}` });
+      return res
+        .status(500)
+        .json({ msg: "Internal server error", error: `${e}` });
     }
   }
   async update(req, res) {
     try {
-      const { id, newStatus } = req.body;
+      const { newStatus, telegramId } = req.body;
 
-      const itemToUpdate = await Item.findById(id);
+      const updatedUser = await User.findOneAndUpdate(
+        { telegramId },
+        { $set: { status: newStatus } },
+        { new: true }
+      );
 
-      if (!itemToUpdate) {
-        return res.status(404).json({ msg: "Item not found" });
+      if (updatedUser) {
+        return res.status(200).json({ updatedUser });
+      } else {
+        return res.status(404).json({ msg: "User not found" });
+      }
+    } catch (e) {
+      return res
+        .status(500)
+        .json({ msg: "Internal server error", error: `${e}` });
+    }
+  }
+  async addItem(req, res) {
+    try {
+      const { itemArrayName, telegramId, channel } = req.body;
+
+      const user = await User.findOne({ telegramId });
+
+      if (!user) {
+        return res.status(404).json({ msg: "User not found" });
       }
 
-      itemToUpdate.status = newStatus;
-      await itemToUpdate.save();
+      if (!user[itemArrayName]) {
+        return res.status(400).json({ msg: "Invalid array name" });
+      }
 
-      res.status(200).json({
-        msg: `Status updated to ${newStatus} for item with id ${id}`,
-        item: itemToUpdate,
+      user[itemArrayName].push(channel);
+      await user.save();
+
+      return res.status(200).json({
+        msg: `Channel added to ${itemArrayName} array for user ${telegramId}`,
+        user,
       });
+    } catch (e) {
+      return res
+        .status(500)
+        .json({ msg: "Internal server error", error: `${e}` });
+    }
+  }
+  async getUsers(req, res) {
+    const users = await User.find();
+
+    res.status(200).json({ users });
+  }
+  async getUser(req, res) {
+    try {
+      const { telegramId } = req.query;
+
+      const candidate = await User.find({ telegramId: telegramId });
+
+      if (!candidate) {
+        res.status(404).json({ msg: "User exists" });
+      }
+      res.status(200).json(candidate);
     } catch (e) {
       res.status(500).json({ msg: "Internal server error", error: `${e}` });
     }
   }
-  async updateTgStatDataForAllItems() {
+  async moveItemBetweenArrays(req, res) {
     try {
-      const items = await Item.find();
+      const { userId, itemId, sourceArrayName, destinationArrayName } =
+        req.body;
 
-      const currentDate = moment().tz("Europe/Kiev");
-
-      const targetTime = currentDate
-        .clone()
-        .set({ hour: 0, minute: 0, second: 0 });
-
-      const delayPerChannel = 5000;
-
-      for (const item of items) {
-        const delay = items.indexOf(item) * delayPerChannel;
-
-        setTimeout(async () => {
-          const [stats, avgpostreach, subscribers, er, get, views] = await Promise.all(
-            [
-              axios.get(
-                `https://api.tgstat.ru/channels/stat/?token=${token}&channelId=${item.name}`
-              ),
-              axios.get(
-                `https://api.tgstat.ru/channels/avg-posts-reach/?token=${token}&channelId=${item.name}`
-              ),
-              axios.get(
-                `https://api.tgstat.ru/channels/subscribers/?token=${token}&channelId=${item.name}`
-              ),
-              axios.get(
-                `https://api.tgstat.ru/channels/er/?token=${token}&channelId=${item.name}`
-              ),
-              axios.get(
-                `https://api.tgstat.ru/channels/get/?token=${token}&channelId=${item.name}`
-              ),
-              axios.get(
-                `https://api.tgstat.ru/channels/views/?token=${token}&channelId=${item.name}`
-              ),
-            ]
-          );
-
-          item.tgStat = {
-            stat: stats.data.status === "ok" ? stats.data.response : "Exists",
-            avg:
-              avgpostreach.data.status === "ok" ? avgpostreach.data : "Exists",
-            subs:
-              subscribers.data.status === "ok"
-                ? subscribers.data.response
-                : "Exists",
-            er: er.data.status === "ok" ? er.data.response : "Exists",
-            get: get.data.status === "ok" ? get.data.response : "Exists",
-            views: views.data.status === "ok"  ? views.data.response : "Exists",
-          };
-
-          await item.save();
-        }, delay);
-      }
-    } catch (e) {
-      console.error("Error updating tgstat data:", e);
-    }
-  }
-  async getOneItem(req, res) {
-    try {
-      const { name } = req.query;
-
-      const itemToSend = await Item.findOne({ name: name });
-
-      if (!itemToSend) {
-        return res.status(500).json({ msg: "Channel is not defined" });
+      const user = await User.findById(userId)
+      if (!user) {
+        return res.status(404).json({ success: false, msg: "User not found" });
       }
 
-      return res.status(200).json(itemToSend);
+      if (!user[sourceArrayName] || !user[destinationArrayName]) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            msg: "Source or destination array not found",
+          });
+      }
+
+      const sourceArray = user[sourceArrayName];
+      const destinationArray = user[destinationArrayName];
+
+      const itemIndex = sourceArray.findIndex((item) => item.name === itemId);
+
+      if (itemIndex === -1) {
+        return res
+          .status(400)
+          .json({ success: false, msg: "Item not found in source array" });
+      }
+
+      const removedItem = sourceArray.splice(itemIndex, 1)[0];
+      destinationArray.push(removedItem);
+
+      await user.save();
+
+      return res
+        .status(200)
+        .json({ success: true, msg: "Item moved successfully", user });
     } catch (e) {
       return res
         .status(500)
-        .json({ msg: "Internal Server Error", error: `${e}` });
-    }
-  }
-  async deleteItem(req, res) {
-    const { name } = req.body;
-    try {
-      const item = await Item.findOne({ name: name });
-      if (!item) {
-        res.status(404).json({ item, msg: "exists" });
-      }
-      await item.deleteOne();
-      res.status(200).json({ msg: "deleted" });
-    } catch (e) {
-      res.status(500).json({ msg: "Internal Server Error", error: `${e}` });
+        .json({ success: false, msg: "Internal server error", error: `${e}` });
     }
   }
 }
-module.exports = new ItemController();
+
+module.exports = new AuthController();
