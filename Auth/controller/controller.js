@@ -103,7 +103,7 @@ class AuthController {
       const { userId, itemId, sourceArrayName, destinationArrayName } =
         req.body;
 
-      const user = await User.findOne({ telegramId: userId });
+      const user = await User.findById(userId);
 
       if (!user) {
         return res.status(404).json({ success: false, msg: "User not found" });
