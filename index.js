@@ -15,7 +15,7 @@ app.use('/item', itemRouter)
 
 const start = async () => {
     try {
-        await mongoose.connect('mongodb+srv://developer:a5f2rWpV0IXuCTcM@tgsell.ngapsqp.mongodb.net/');
+        await mongoose.connect('mongodb+srv://tgselldb:vyHzInqF6NJEPvvS@tgsell.wlqaemh.mongodb.net/');
         app.listen(port, () => {
             console.log(`Server is running on port ${port}`);
         });

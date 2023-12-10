@@ -1,5 +1,5 @@
 const axios = require("axios");
-const Item = require("../models/product.js");
+const Item = require("../models/product");
 const moment = require("moment-timezone");
 
 const token = "1ff5fe24c503fad6fc8669120fa0a449";
@@ -27,37 +27,27 @@ class ItemController {
         res.status(400).json({ msg: "Channel with that name exists" });
       }
 
-      const [stats, avgpostreach, subscribers, er, get, views] = await Promise.all([
-        axios.get(
-          `https://api.tgstat.ru/channels/stat/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/avg-posts-reach/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/subscribers/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/er/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/get/?token=${token}&channelId=${name}`
-        ),
-        axios.get(
-          `https://api.tgstat.ru/channels/views/?token=${token}&channelId=${name}`
-        ),
-      ]);
-      const filteredData = {
-        stat: stats.data.status === "ok" ? stats.data.response : "Exists",
-        avg: avgpostreach.data.status === "ok" ? avgpostreach.data : "Exists",
-        subs:
-          subscribers.data.status === "ok"
-            ? subscribers.data.response
-            : "Exists",
-        er: er.data.status === "ok" ? er.data.response : "Exists",
-        get: get.data.status === "ok" ? get.data.response : "Exists",
-        views: views.data.status === "ok" ? views.data.response : "Exists"
-      };
+      const [stats, avgpostreach, subscribers, er, get, views] =
+        await Promise.all([
+          axios.get(
+            `https://api.tgstat.ru/channels/stat/?token=${token}&channelId=${name}`
+          ),
+          axios.get(
+            `https://api.tgstat.ru/channels/avg-posts-reach/?token=${token}&channelId=${name}`
+          ),
+          axios.get(
+            `https://api.tgstat.ru/channels/subscribers/?token=${token}&channelId=${name}`
+          ),
+          axios.get(
+            `https://api.tgstat.ru/channels/er/?token=${token}&channelId=${name}`
+          ),
+          axios.get(
+            `https://api.tgstat.ru/channels/get/?token=${token}&channelId=${name}`
+          ),
+          axios.get(
+            `https://api.tgstat.ru/channels/views/?token=${token}&channelId=${name}`
+          ),
+        ]);
 
       const newItem = await new Item({
         name: name,
@@ -72,7 +62,15 @@ class ItemController {
         connect: connect,
         status: status,
         tgStat: {
-          filteredData,
+          stat: stats.data.status === "ok" ? stats.data.response : "Exists",
+          avg: avgpostreach.data.status === "ok" ? avgpostreach.data : "Exists",
+          subs:
+            subscribers.data.status === "ok"
+              ? subscribers.data.response
+              : "Exists",
+          er: er.data.status === "ok" ? er.data.response : "Exists",
+          get: get.data.status === "ok" ? get.data.response : "Exists",
+          views: views.data.status === "ok" ? views.data.response : "Exists",
         },
       }).save();
       res.status(200).json(newItem);
@@ -128,8 +126,8 @@ class ItemController {
         const delay = items.indexOf(item) * delayPerChannel;
 
         setTimeout(async () => {
-          const [stats, avgpostreach, subscribers, er, get, views] = await Promise.all(
-            [
+          const [stats, avgpostreach, subscribers, er, get, views] =
+            await Promise.all([
               axios.get(
                 `https://api.tgstat.ru/channels/stat/?token=${token}&channelId=${item.name}`
               ),
@@ -148,8 +146,7 @@ class ItemController {
               axios.get(
                 `https://api.tgstat.ru/channels/views/?token=${token}&channelId=${item.name}`
               ),
-            ]
-          );
+            ]);
 
           item.tgStat = {
             stat: stats.data.status === "ok" ? stats.data.response : "Exists",
@@ -161,7 +158,7 @@ class ItemController {
                 : "Exists",
             er: er.data.status === "ok" ? er.data.response : "Exists",
             get: get.data.status === "ok" ? get.data.response : "Exists",
-            views: views.data.status === "ok"  ? views.data.response : "Exists",
+            views: views.data.status === "ok" ? views.data.response : "Exists",
           };
 
           await item.save();
@@ -173,9 +170,9 @@ class ItemController {
   }
   async getOneItem(req, res) {
     try {
-      const { name } = req.query;
+      const { id } = req.query;
 
-      const itemToSend = await Item.findOne({ name: name });
+      const itemToSend = await Item.findById(id);
 
       if (!itemToSend) {
         return res.status(500).json({ msg: "Channel is not defined" });

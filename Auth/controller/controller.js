@@ -103,18 +103,16 @@ class AuthController {
       const { userId, itemId, sourceArrayName, destinationArrayName } =
         req.body;
 
-      const user = await User.findById(userId)
+      const user = await User.findById(userId);
       if (!user) {
         return res.status(404).json({ success: false, msg: "User not found" });
       }
 
       if (!user[sourceArrayName] || !user[destinationArrayName]) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            msg: "Source or destination array not found",
-          });
+        return res.status(400).json({
+          success: false,
+          msg: "Source or destination array not found",
+        });
       }
 
       const sourceArray = user[sourceArrayName];
@@ -140,6 +138,33 @@ class AuthController {
       return res
         .status(500)
         .json({ success: false, msg: "Internal server error", error: `${e}` });
+    }
+  }
+  async deleteItemWithArray(req, res) {
+    try {
+      const { userId, itemId, arrayName } = req.body;
+
+      const user = await User.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ msg: "User not found" });
+      }
+
+      const indexToRemove = user[arrayName].findIndex(
+        (item) => item._id === itemId
+      );
+
+      if (indexToRemove === -1) {
+        return res.status(404).json({ msg: "Item not found in favorites" });
+      }
+
+      user[arrayName].splice(indexToRemove, 1);
+
+      await user.save();
+
+      res.json({ msg: "Item removed from favorites", user: user });
+    } catch (e) {
+      res.status(500).json({ msg: "Internal Server Error", error: `${e}` });
     }
   }
 }
